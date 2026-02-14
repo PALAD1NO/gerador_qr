@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Necessário para travar orientação e limite
+import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
@@ -8,7 +8,6 @@ import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() {
-  // PASSO 1: Travar a orientação vertical
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -24,7 +23,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Gerador QR Pro 2.0',
+      title: 'Gerador QR Pro 3.0',
       theme: ThemeData(primarySwatch: Colors.indigo, useMaterial3: true),
       home: const PaginaGeradorQR(),
     );
@@ -72,7 +71,6 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
     await prefs.setStringList('historico_qr', _historico);
   }
 
-  // Função para os Atalhos Rápidos (A5-EXP, etc)
   void _gerarAtalho(String codigo) {
     setState(() {
       _cont1.clear();
@@ -112,10 +110,9 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Gerador QR 2.0"), centerTitle: true),
+      appBar: AppBar(title: const Text("Gerador QR 3.0"), centerTitle: true),
       body: Column(
         children: [
-          // ÁREA DOS CAMPOS (PASSO 2: Limite de 2 números)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
             child: Row(
@@ -162,7 +159,6 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
             ),
           ),
 
-          // PASSO 3: BARRA DE ATALHOS FIXOS
           const Divider(),
           const Text("ATALHOS RÁPIDOS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
           Padding(
@@ -178,14 +174,19 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
             ),
           ),
 
-          // HISTÓRICO
+          // VERSÃO 3.0: HISTÓRICO EM GRADE (2 LINHAS)
           const Divider(),
-          const Text("HISTÓRICO", style: TextStyle(fontSize: 10, color: Colors.grey)),
-          Container(
-            height: 70,
-            padding: const EdgeInsets.only(bottom: 5),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
+          const Text("HISTÓRICO RECENTE", style: TextStyle(fontSize: 10, color: Colors.grey)),
+          SizedBox(
+            height: 120, // Aumentamos a altura para caber 2 linhas
+            child: GridView.builder(
+              padding: const EdgeInsets.all(8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 5, // 5 colunas
+                mainAxisSpacing: 8, // Espaço entre linhas
+                crossAxisSpacing: 8, // Espaço entre colunas
+                childAspectRatio: 1.8, // Ajusta o formato retangular dos botões
+              ),
               itemCount: _historico.length,
               itemBuilder: (context, index) => GestureDetector(
                 onTap: () {
@@ -193,10 +194,17 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
                      _dadosParaQR = _historico[index];
                    });
                 },
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Center(child: Text(_historico[index])),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _historico[index], 
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)
+                    ),
                   ),
                 ),
               ),
@@ -207,15 +215,18 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
     );
   }
 
-  // Widget para os botões de atalho
   Widget _botaoAtalho(String label) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.orange.shade100,
+        // VERSÃO 3.0: Tom de azul para os atalhos
+        backgroundColor: Colors.blue.shade100,
+        foregroundColor: Colors.blue.shade900,
+        elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onPressed: () => _gerarAtalho(label),
-      child: Text(label, style: const TextStyle(fontSize: 11, color: Colors.black)),
+      child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -225,7 +236,6 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
       child: TextField(
         controller: controller,
         keyboardType: TextInputType.number,
-        // PASSO 2: Limitar a apenas 2 dígitos
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(2), 
