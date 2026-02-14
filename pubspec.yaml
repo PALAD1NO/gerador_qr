@@ -1,0 +1,36 @@
+name: gerador_qr
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  qr_flutter: ^4.1.0
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.2.0
+  share_plus: ^7.2.2
+  screenshot: ^3.0.0
+  path_provider: ^2.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: "^0.13.1"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icon_app.png
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon_app.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon_app.png"
