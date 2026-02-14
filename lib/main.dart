@@ -23,8 +23,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Gerador QR Pro 3.0',
-      theme: ThemeData(primarySwatch: Colors.indigo, useMaterial3: true),
+      title: 'Gerador QR Pro 3.1',
+      theme: ThemeData(
+        primarySwatch: Colors.indigo, 
+        useMaterial3: true,
+        // Garante que o texto use uma escala previsível
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
       home: const PaginaGeradorQR(),
     );
   }
@@ -110,15 +115,16 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Gerador QR 3.0"), centerTitle: true),
+      appBar: AppBar(title: const Text("Gerador QR 3.1"), centerTitle: true),
       body: Column(
         children: [
+          // ÁREA DE INPUT
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text("A", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                const Text("A", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(width: 8),
                 _campoNumerico(_cont1),
                 const Text(" - ", style: TextStyle(fontSize: 20)),
@@ -132,7 +138,7 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
           Expanded(
             child: Center(
               child: _dadosParaQR.isEmpty 
-                ? const Text("Digite ou use um atalho") 
+                ? const Text("Digite ou use um atalho", style: TextStyle(fontSize: 16)) 
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -144,7 +150,8 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
                           child: QrImageView(data: _dadosParaQR, size: 250),
                         ),
                       ),
-                      Text(_dadosParaQR, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.indigo)),
+                      const SizedBox(height: 10),
+                      Text(_dadosParaQR, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.indigo)),
                       const SizedBox(height: 15),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -159,10 +166,11 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
             ),
           ),
 
+          // BARRA DE ATALHOS (Ajustada)
           const Divider(),
-          const Text("ATALHOS RÁPIDOS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+          const Text("ATALHOS RÁPIDOS", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -174,18 +182,19 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
             ),
           ),
 
-          // VERSÃO 3.0: HISTÓRICO EM GRADE (2 LINHAS)
+          // HISTÓRICO EM GRADE (Ajustada para 2 linhas amplas)
           const Divider(),
-          const Text("HISTÓRICO RECENTE", style: TextStyle(fontSize: 10, color: Colors.grey)),
+          const Text("HISTÓRICO RECENTE", style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
           SizedBox(
-            height: 120, // Aumentamos a altura para caber 2 linhas
+            height: 150, // Altura ampliada para conforto visual
             child: GridView.builder(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
+              physics: const NeverScrollableScrollPhysics(), // Mantém fixo já que são só 10
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5, // 5 colunas
-                mainAxisSpacing: 8, // Espaço entre linhas
-                crossAxisSpacing: 8, // Espaço entre colunas
-                childAspectRatio: 1.8, // Ajusta o formato retangular dos botões
+                crossAxisCount: 5, 
+                mainAxisSpacing: 12, 
+                crossAxisSpacing: 8, 
+                childAspectRatio: 1.3, // Botões mais altos para facilitar o toque
               ),
               itemCount: _historico.length,
               itemBuilder: (context, index) => GestureDetector(
@@ -196,20 +205,26 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.grey.shade400),
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300, width: 1.5),
                   ),
                   child: Center(
                     child: Text(
                       _historico[index], 
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 13, // Fonte aumentada
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
+          const SizedBox(height: 5),
         ],
       ),
     );
@@ -218,21 +233,23 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   Widget _botaoAtalho(String label) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        // VERSÃO 3.0: Tom de azul para os atalhos
         backgroundColor: Colors.blue.shade100,
         foregroundColor: Colors.blue.shade900,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15), // Mais área de toque
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       onPressed: () => _gerarAtalho(label),
-      child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+      child: Text(
+        label, 
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold) // Fonte aumentada
+      ),
     );
   }
 
   Widget _campoNumerico(TextEditingController controller) {
     return SizedBox(
-      width: 65,
+      width: 70, // Levemente mais largo
       child: TextField(
         controller: controller,
         keyboardType: TextInputType.number,
@@ -241,11 +258,11 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
           LengthLimitingTextInputFormatter(2), 
         ], 
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), // Fonte do campo aumentada
         onChanged: (_) => _atualizarCodigo(),
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           counterText: "",
         ),
       ),
@@ -256,7 +273,10 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
     return ElevatedButton.icon(
       onPressed: acao,
       icon: Icon(icone),
-      label: Text(rotulo),
+      label: Text(rotulo, style: const TextStyle(fontSize: 16)),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      ),
     );
   }
 }
