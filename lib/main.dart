@@ -1,14 +1,20 @@
-import 'dart:io'; // Necessário para manipular arquivos
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; // Necessário para travar orientação e limite
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:screenshot/screenshot.dart'; // Para capturar a imagem
-import 'package:path_provider/path_provider.dart'; // Para salvar o arquivo temporário
+import 'package:screenshot/screenshot.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  // PASSO 1: Travar a orientação vertical
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]).then((_) {
+    runApp(const MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -18,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Gerador QR Pro',
+      title: 'Gerador QR Pro 2.0',
       theme: ThemeData(primarySwatch: Colors.indigo, useMaterial3: true),
       home: const PaginaGeradorQR(),
     );
@@ -36,8 +42,6 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   final TextEditingController _cont1 = TextEditingController();
   final TextEditingController _cont2 = TextEditingController();
   final TextEditingController _cont3 = TextEditingController();
-  
-  // Controlador para capturar a imagem do QR Code
   final ScreenshotController _screenshotController = ScreenshotController();
   
   String _dadosParaQR = "";
@@ -66,17 +70,15 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
       }
     });
     await prefs.setStringList('historico_qr', _historico);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Salvo no histórico!")));
   }
 
-  void _recuperarDoHistorico(String codigo) {
-    String puro = codigo.replaceFirst('A', '');
-    List<String> partes = puro.split('-');
+  // Função para os Atalhos Rápidos (A5-EXP, etc)
+  void _gerarAtalho(String codigo) {
     setState(() {
-      _cont1.text = partes.isNotEmpty ? partes[0] : "";
-      _cont2.text = partes.length > 1 ? partes[1] : "";
-      _cont3.text = partes.length > 2 ? partes[2] : "";
-      _atualizarCodigo();
+      _cont1.clear();
+      _cont2.clear();
+      _cont3.clear();
+      _dadosParaQR = codigo;
     });
   }
 
@@ -93,25 +95,14 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
     });
   }
 
-  // FUNÇÃO PARA COMPARTILHAR A IMAGEM
   Future<void> _compartilharImagem() async {
     try {
-      // 1. Captura a imagem do widget
       final Uint8List? image = await _screenshotController.capture();
-
       if (image != null) {
-        // 2. Obtém diretório temporário do celular
         final directory = await getTemporaryDirectory();
         final imagePath = await File('${directory.path}/qrcode_gerado.png').create();
-        
-        // 3. Grava os bytes da imagem no arquivo
         await imagePath.writeAsBytes(image);
-
-        // 4. Compartilha o arquivo
-        await Share.shareXFiles(
-          [XFile(imagePath.path)],
-          text: 'Código: $_dadosParaQR',
-        );
+        await Share.shareXFiles([XFile(imagePath.path)], text: 'Código: $_dadosParaQR');
       }
     } catch (e) {
       debugPrint("Erro ao compartilhar: $e");
@@ -121,9 +112,10 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Gerador QR"), centerTitle: true),
+      appBar: AppBar(title: const Text("Gerador QR 2.0"), centerTitle: true),
       body: Column(
         children: [
+          // ÁREA DOS CAMPOS (PASSO 2: Limite de 2 números)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
             child: Row(
@@ -143,21 +135,20 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
           Expanded(
             child: Center(
               child: _dadosParaQR.isEmpty 
-                ? const Text("Digite os números acima") 
+                ? const Text("Digite ou use um atalho") 
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // O Screenshot envolve apenas o que queremos "fotografar"
                       Screenshot(
                         controller: _screenshotController,
                         child: Container(
-                          color: Colors.white, // Fundo branco para o QR sair nítido
+                          color: Colors.white,
                           padding: const EdgeInsets.all(15),
                           child: QrImageView(data: _dadosParaQR, size: 250),
                         ),
                       ),
                       Text(_dadosParaQR, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.indigo)),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -171,21 +162,41 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
             ),
           ),
 
+          // PASSO 3: BARRA DE ATALHOS FIXOS
           const Divider(),
-          const Text("HISTÓRICO (Toque para carregar)", style: TextStyle(fontSize: 10, color: Colors.grey)),
+          const Text("ATALHOS RÁPIDOS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _botaoAtalho("A5-EXP"),
+                _botaoAtalho("A6-EXP"),
+                _botaoAtalho("A7-EXP"),
+                _botaoAtalho("A8-EXP"),
+              ],
+            ),
+          ),
+
+          // HISTÓRICO
+          const Divider(),
+          const Text("HISTÓRICO", style: TextStyle(fontSize: 10, color: Colors.grey)),
           Container(
-            height: 80,
-            padding: const EdgeInsets.only(bottom: 10),
+            height: 70,
+            padding: const EdgeInsets.only(bottom: 5),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _historico.length,
               itemBuilder: (context, index) => GestureDetector(
-                onTap: () => _recuperarDoHistorico(_historico[index]),
+                onTap: () {
+                   setState(() {
+                     _dadosParaQR = _historico[index];
+                   });
+                },
                 child: Card(
-                  color: Colors.grey[100],
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                    child: Center(child: Text(_historico[index], style: const TextStyle(fontWeight: FontWeight.bold))),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Center(child: Text(_historico[index])),
                   ),
                 ),
               ),
@@ -196,13 +207,29 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
     );
   }
 
+  // Widget para os botões de atalho
+  Widget _botaoAtalho(String label) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.orange.shade100,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+      ),
+      onPressed: () => _gerarAtalho(label),
+      child: Text(label, style: const TextStyle(fontSize: 11, color: Colors.black)),
+    );
+  }
+
   Widget _campoNumerico(TextEditingController controller) {
     return SizedBox(
-      width: 70,
+      width: 65,
       child: TextField(
         controller: controller,
-        keyboardType: TextInputType.number, 
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly], 
+        keyboardType: TextInputType.number,
+        // PASSO 2: Limitar a apenas 2 dígitos
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(2), 
+        ], 
         textAlign: TextAlign.center,
         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         onChanged: (_) => _atualizarCodigo(),
@@ -220,7 +247,6 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
       onPressed: acao,
       icon: Icon(icone),
       label: Text(rotulo),
-      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
     );
   }
 }
