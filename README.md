@@ -2,7 +2,7 @@
 
 Este aplicativo foi desenvolvido em **Flutter** para atender a uma demanda interna específica, otimizando o fluxo de trabalho e a geração de identificadores rápidos na minha empresa atual.
 
-## O Problema & A Solução
+## O Problema e A Solução
 Antes, a geração de etiquetas ou códigos seguia um processo manual ou dependia de ferramentas genéricas lentas. Este app foi projetado para ser um **totem de produtividade**, permitindo que qualquer colaborador gere códigos padronizados em segundos.
 
 ## Funcionalidades Principais
