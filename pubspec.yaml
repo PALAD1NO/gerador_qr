@@ -1,11 +1,12 @@
 name: gerador_qr
-description: "A new Flutter project."
+description: "Projeto Gerador QR Pro"
 publish_to: 'none'
 
-version: 1.0.0+1
+# Aumentado para indicar atualização ao Android
+version: 1.1.0+2 
 
 environment:
-  sdk: ^3.10.7
+  sdk: '>=3.10.7 <4.0.0'
 
 dependencies:
   flutter:
@@ -20,8 +21,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
-  flutter_launcher_icons: "^0.13.1"
+  flutter_lints: ^3.0.0 # Atualizado para versão estável
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true

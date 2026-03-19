@@ -1,4 +1,4 @@
-package com.example.gerador_qr
+package com.felipe.gerador_qr_pro
 
 import io.flutter.embedding.android.FlutterActivity
 
