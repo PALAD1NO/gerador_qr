@@ -9,12 +9,14 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const _primaryBlue = Color(0xFF0052FF);
-const _secondaryInk = Color(0xFF1E293B);
-const _surface = Color(0xFFF3F6FB);
+const _primaryBlue = Color(0xFF0C63E7);
+const _primaryBlueDark = Color(0xFF0847A6);
+const _secondaryInk = Color(0xFF1F2937);
+const _surface = Color(0xFFF4F7FC);
+const _surfaceBlue = Color(0xFFEAF2FF);
 const _card = Color(0xFFFFFFFF);
-const _line = Color(0xFFD8E0EC);
-const _muted = Color(0xFF667085);
+const _line = Color(0xFFD7E1F0);
+const _muted = Color(0xFF6B7280);
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,31 +38,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = ThemeData(
+      useMaterial3: true,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      scaffoldBackgroundColor: _surface,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: _primaryBlue,
+        primary: _primaryBlue,
+        secondary: _secondaryInk,
+        surface: _card,
+      ),
+    );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Gerador QR',
-      theme: ThemeData(
-        useMaterial3: true,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        scaffoldBackgroundColor: _surface,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: _primaryBlue,
-          primary: _primaryBlue,
-          secondary: _secondaryInk,
-          surface: _card,
+      theme: base.copyWith(
+        textTheme: base.textTheme.apply(
+          bodyColor: _secondaryInk,
+          displayColor: _secondaryInk,
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: _surface,
+          backgroundColor: Colors.transparent,
           foregroundColor: _secondaryInk,
           elevation: 0,
-          centerTitle: true,
-        ),
-        navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: _card,
-          indicatorColor: _primaryBlue,
-          labelTextStyle: WidgetStateProperty.all(
-            const TextStyle(fontWeight: FontWeight.w700),
-          ),
+          centerTitle: false,
         ),
         snackBarTheme: const SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
@@ -227,37 +229,178 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_paginaAtual == 0 ? 'Gerador QR' : '')),
-      body: SafeArea(
-        child: IndexedStack(
-          index: _paginaAtual,
-          children: [_telaGerador(), _telaHistorico()],
+      extendBody: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(86),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
+            child: _topHeader(),
+          ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: NavigationBar(
-            selectedIndex: _paginaAtual,
-            onDestinationSelected: (index) {
-              setState(() {
-                _paginaAtual = index;
-              });
-            },
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.qr_code_2_outlined),
-                selectedIcon: Icon(Icons.qr_code_2, color: Colors.white),
-                label: 'Gerar',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.history_outlined),
-                selectedIcon: Icon(Icons.history, color: Colors.white),
-                label: 'Historico',
-              ),
-            ],
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFF7FAFF), Color(0xFFF1F5FC)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: IndexedStack(
+            index: _paginaAtual,
+            children: [_telaGerador(), _telaHistorico()],
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+        child: _barraNavegacao(),
+      ),
+    );
+  }
+
+  Widget _topHeader() {
+    final icon = _paginaAtual == 0 ? Icons.qr_code_2_rounded : Icons.history;
+    final subtitle = _paginaAtual == 0
+        ? 'Monte, salve e compartilhe seus codigos'
+        : 'Historico recente dos codigos gerados';
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 420;
+        final iconBoxSize = compact ? 48.0 : 58.0;
+        final iconSize = compact ? 24.0 : 30.0;
+
+        return Row(
+          children: [
+            Container(
+              width: iconBoxSize,
+              height: iconBoxSize,
+              decoration: BoxDecoration(
+                color: _surfaceBlue,
+                borderRadius: BorderRadius.circular(compact ? 16 : 18),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x140C63E7),
+                    blurRadius: 24,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: _primaryBlue, size: iconSize),
+            ),
+            SizedBox(width: compact ? 12 : 16),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Gerador QR',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: compact ? 16 : 18,
+                      fontWeight: FontWeight.w800,
+                      color: _secondaryInk,
+                    ),
+                  ),
+                  if (!compact) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12.5, color: _muted),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _barraNavegacao() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: _card.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x140F172A),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _navItem(
+              icon: Icons.qr_code_2_rounded,
+              label: 'Gerar',
+              selected: _paginaAtual == 0,
+              onTap: () => setState(() => _paginaAtual = 0),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _navItem(
+              icon: Icons.history_rounded,
+              label: 'Historico',
+              selected: _paginaAtual == 1,
+              onTap: () => setState(() => _paginaAtual = 1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _navItem({
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? _surfaceBlue : Colors.transparent,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: selected ? _primaryBlue : _muted, size: 22),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? _primaryBlue : _muted,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -266,213 +409,28 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   Widget _telaGerador() {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final compact = width < 390;
+        final horizontalPadding = width >= 720 ? 28.0 : 16.0;
+        final cardMaxWidth = width >= 920 ? 760.0 : double.infinity;
+
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight - 16),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: _card,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: _line),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x120F172A),
-                    blurRadius: 24,
-                    offset: Offset(0, 10),
-                  ),
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            8,
+            horizontalPadding,
+            126,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: cardMaxWidth),
+              child: Column(
+                children: [
+                  _heroGerador(compact: compact),
+                  const SizedBox(height: 18),
+                  _atalhosSection(),
                 ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 18,
-                            horizontal: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _surface,
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: _line),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 46,
-                                height: 46,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: _primaryBlue,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Text(
-                                  'A',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              _campoNumerico(_cont1),
-                              _separadorCodigo(),
-                              _campoNumerico(_cont2),
-                              _separadorCodigo(),
-                              _campoNumerico(_cont3),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 350),
-                          child: Center(
-                            child: _dadosParaQR.isEmpty
-                                ? Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 96,
-                                        height: 96,
-                                        decoration: BoxDecoration(
-                                          color: _surface,
-                                          borderRadius: BorderRadius.circular(
-                                            28,
-                                          ),
-                                          border: Border.all(color: _line),
-                                        ),
-                                        child: const Icon(
-                                          Icons.qr_code_2_rounded,
-                                          size: 48,
-                                          color: _primaryBlue,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 18),
-                                      const Text(
-                                        'Digite ou use um atalho',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w700,
-                                          color: _secondaryInk,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Text(
-                                        'O codigo sera montado automaticamente.',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: _muted,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Screenshot(
-                                        controller: _screenshotController,
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              28,
-                                            ),
-                                            border: Border.all(color: _line),
-                                            boxShadow: const [
-                                              BoxShadow(
-                                                color: Color(0x100052FF),
-                                                blurRadius: 20,
-                                                offset: Offset(0, 8),
-                                              ),
-                                            ],
-                                          ),
-                                          padding: const EdgeInsets.all(18),
-                                          child: QrImageView(
-                                            data: _dadosParaQR,
-                                            size: 250,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        _dadosParaQR,
-                                        style: const TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.w800,
-                                          color: _primaryBlue,
-                                          letterSpacing: -0.8,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 18),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          _botaoAcao(
-                                            Icons.save_outlined,
-                                            'Salvar',
-                                            _salvarNoHistorico,
-                                          ),
-                                          const SizedBox(width: 16),
-                                          _botaoAcao(
-                                            Icons.share_outlined,
-                                            'Enviar',
-                                            _compartilharImagem,
-                                            isPrimary: false,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-                      decoration: BoxDecoration(
-                        color: _surface,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: _line),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'ATALHOS RAPIDOS',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.1,
-                              color: _muted,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            alignment: WrapAlignment.center,
-                            children: [
-                              _botaoAtalho('A5-EXP'),
-                              _botaoAtalho('A6-EXP'),
-                              _botaoAtalho('A7-EXP'),
-                              _botaoAtalho('A8-EXP'),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
           ),
@@ -481,231 +439,556 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
     );
   }
 
-  Widget _telaHistorico() {
-    if (_historico.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: _line),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x120F172A),
-                  blurRadius: 24,
-                  offset: Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 88,
-                  height: 88,
-                  decoration: BoxDecoration(
-                    color: _surface,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: const Icon(
-                    Icons.history,
-                    size: 46,
-                    color: _primaryBlue,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Nenhum codigo salvo ainda',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: _secondaryInk,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Gere um QR, toque em salvar e ele aparecera aqui.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: _muted),
-                ),
-              ],
+  Widget _heroGerador({required bool compact}) {
+    final qrSize = compact ? 190.0 : 240.0;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(
+        compact ? 14 : 18,
+        compact ? 16 : 20,
+        compact ? 14 : 18,
+        compact ? 18 : 22,
+      ),
+      decoration: BoxDecoration(
+        color: _card,
+        borderRadius: BorderRadius.circular(34),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x120F172A),
+            blurRadius: 28,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _codigoInputPanel(compact: compact),
+          const SizedBox(height: 18),
+          _dadosParaQR.isEmpty
+              ? _estadoVazioGerador(compact: compact)
+              : _previewGerador(qrSize: qrSize, compact: compact),
+        ],
+      ),
+    );
+  }
+
+  Widget _codigoInputPanel({required bool compact}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 10 : 14,
+        vertical: compact ? 14 : 18,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFEFF),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Codigo de identificacao',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: _muted,
             ),
           ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final availableWidth = constraints.maxWidth;
+              final isTight = availableWidth < 330;
+              final separatorWidth = isTight ? 14.0 : 18.0;
+              final gapWidth = isTight ? 6.0 : 10.0;
+              final totalSpacing = (gapWidth * 1) + (separatorWidth * 2);
+              final itemWidth = ((availableWidth - totalSpacing) / 4).clamp(
+                52.0,
+                compact ? 62.0 : 70.0,
+              );
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _blocoPrefixoA(size: itemWidth),
+                  SizedBox(width: gapWidth),
+                  _campoNumerico(_cont1, size: itemWidth),
+                  _separadorCodigo(width: separatorWidth, tight: isTight),
+                  _campoNumerico(_cont2, size: itemWidth),
+                  _separadorCodigo(width: separatorWidth, tight: isTight),
+                  _campoNumerico(_cont3, size: itemWidth),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _blocoPrefixoA({required double size}) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_primaryBlue, _primaryBlueDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: const Border.fromBorderSide(
+          BorderSide(color: Color(0xFFB6C4D7)),
+        ),
+      ),
+      child: Text(
+        'A',
+        style: TextStyle(
+          fontSize: size * 0.32,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _estadoVazioGerador({required bool compact}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 14 : 24,
+        vertical: compact ? 30 : 40,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF9FBFF), Color(0xFFF1F6FF)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: _line),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: compact ? 84 : 96,
+            height: compact ? 84 : 96,
+            decoration: BoxDecoration(
+              color: _surfaceBlue,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: const Icon(
+              Icons.qr_code_2_rounded,
+              size: 46,
+              color: _primaryBlue,
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'Digite ou use um atalho',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: _secondaryInk,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'O codigo sera montado automaticamente e o QR aparecera aqui.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: _muted),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _previewGerador({required double qrSize, required bool compact}) {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(compact ? 16 : 22),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFDFEFF), Color(0xFFF5F9FF)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: _line),
+          ),
+          child: Column(
+            children: [
+              Screenshot(
+                controller: _screenshotController,
+                child: _quadroQr(qrSize),
+              ),
+              const SizedBox(height: 22),
+              Text(
+                _dadosParaQR,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: compact ? 30 : 38,
+                  fontWeight: FontWeight.w900,
+                  color: _primaryBlue,
+                  letterSpacing: -1.2,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'CODIGO DE IDENTIFICACAO',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.9,
+                  color: _muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        _acoesGerador(compact: compact),
+      ],
+    );
+  }
+
+  Widget _quadroQr(double qrSize) {
+    final moldura = qrSize + 74;
+
+    return Container(
+      width: moldura,
+      height: moldura,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x140052FF),
+            blurRadius: 26,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(color: const Color(0xFFCFE0FF), width: 2),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            width: qrSize + 16,
+            height: qrSize + 16,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2B2B2B),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33000000),
+                  blurRadius: 12,
+                  offset: Offset(6, 6),
+                ),
+              ],
+            ),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(10),
+              child: QrImageView(data: _dadosParaQR, size: qrSize),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _acoesGerador({required bool compact}) {
+    final salvar = _botaoAcao(
+      Icons.save_outlined,
+      'Salvar',
+      _salvarNoHistorico,
+    );
+    final enviar = _botaoAcao(
+      Icons.share_outlined,
+      'Enviar',
+      _compartilharImagem,
+      isPrimary: false,
+    );
+
+    if (compact) {
+      return Column(
+        children: [
+          SizedBox(width: double.infinity, child: salvar),
+          const SizedBox(height: 12),
+          SizedBox(width: double.infinity, child: enviar),
+        ],
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _card,
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: _line),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x120F172A),
-              blurRadius: 24,
-              offset: Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F0FF),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.history, color: _primaryBlue),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Historico recente',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: _secondaryInk,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Toque em um item para abrir no gerador.',
-                          style: TextStyle(fontSize: 12, color: _muted),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 1.35,
-                ),
-                itemCount: _historico.length,
-                itemBuilder: (context, index) {
-                  final codigo = _historico[index];
-                  return DragTarget<int>(
-                    onWillAcceptWithDetails: (details) => details.data != index,
-                    onAcceptWithDetails: (details) {
-                      _moverItemHistorico(details.data, index);
-                    },
-                    builder: (context, candidateData, rejectedData) {
-                      final isHovering = candidateData.isNotEmpty;
-                      final card = _cardHistorico(
-                        codigo,
-                        index,
-                        highlighted: isHovering,
-                      );
+    return Row(
+      children: [
+        Expanded(child: salvar),
+        const SizedBox(width: 14),
+        Expanded(child: enviar),
+      ],
+    );
+  }
 
-                      if (kIsWeb) {
-                        return Draggable<int>(
-                          data: index,
-                          maxSimultaneousDrags: 1,
-                          feedback: Material(
-                            color: Colors.transparent,
-                            child: SizedBox(
-                              width: 140,
-                              child: _cardHistorico(
-                                codigo,
-                                index,
-                                compact: true,
-                                highlighted: true,
-                              ),
-                            ),
-                          ),
-                          childWhenDragging: Opacity(
-                            opacity: 0.35,
-                            child: _cardHistorico(
-                              codigo,
-                              index,
-                              highlighted: true,
-                            ),
-                          ),
-                          child: card,
-                        );
-                      }
-
-                      return LongPressDraggable<int>(
-                        data: index,
-                        maxSimultaneousDrags: 1,
-                        feedback: Material(
-                          color: Colors.transparent,
-                          child: SizedBox(
-                            width: 140,
-                            child: _cardHistorico(
-                              codigo,
-                              index,
-                              compact: true,
-                              highlighted: true,
-                            ),
-                          ),
-                        ),
-                        childWhenDragging: Opacity(
-                          opacity: 0.35,
-                          child: _cardHistorico(
-                            codigo,
-                            index,
-                            highlighted: true,
-                          ),
-                        ),
-                        child: card,
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+  Widget _atalhosSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5FC),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFFE3EBF7)),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'ATALHOS RAPIDOS',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: _muted,
+                letterSpacing: 0.9,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          const SizedBox(width: double.infinity),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            alignment: WrapAlignment.center,
+            children: [
+              _botaoAtalho('A5-EXP'),
+              _botaoAtalho('A6-EXP'),
+              _botaoAtalho('A7-EXP'),
+              _botaoAtalho('A8-EXP'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _telaHistorico() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontalPadding = width >= 720 ? 28.0 : 16.0;
+        final maxWidth = width >= 1080 ? 980.0 : double.infinity;
+
+        if (_historico.isEmpty) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              8,
+              horizontalPadding,
+              126,
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: _historicoVazio(),
+              ),
+            ),
+          );
+        }
+
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            8,
+            horizontalPadding,
+            126,
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: _gridHistorico(width),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _historicoVazio() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: _card,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: _line),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x120F172A),
+            blurRadius: 28,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 92,
+            height: 92,
+            decoration: BoxDecoration(
+              color: _surfaceBlue,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: const Icon(Icons.history, size: 46, color: _primaryBlue),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Nenhum codigo salvo ainda',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: _secondaryInk,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Gere um QR, toque em salvar e ele aparecera aqui.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: _muted),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _gridHistorico(double width) {
+    final crossAxisCount = width >= 900
+        ? 4
+        : width >= 620
+        ? 3
+        : 2;
+    final childAspectRatio = width >= 900
+        ? 0.9
+        : width >= 620
+        ? 0.84
+        : width < 390
+        ? 0.70
+        : 0.76;
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: childAspectRatio,
+      ),
+      itemCount: _historico.length,
+      itemBuilder: (context, index) {
+        final codigo = _historico[index];
+        return DragTarget<int>(
+          onWillAcceptWithDetails: (details) => details.data != index,
+          onAcceptWithDetails: (details) {
+            _moverItemHistorico(details.data, index);
+          },
+          builder: (context, candidateData, rejectedData) {
+            final isHovering = candidateData.isNotEmpty;
+            final card = _cardHistorico(codigo, index, highlighted: isHovering);
+
+            if (kIsWeb) {
+              return Draggable<int>(
+                data: index,
+                maxSimultaneousDrags: 1,
+                feedback: Material(
+                  color: Colors.transparent,
+                  child: SizedBox(
+                    width: width >= 620 ? 200 : 160,
+                    child: _cardHistorico(
+                      codigo,
+                      index,
+                      compact: true,
+                      highlighted: true,
+                    ),
+                  ),
+                ),
+                childWhenDragging: Opacity(opacity: 0.35, child: card),
+                child: card,
+              );
+            }
+
+            return LongPressDraggable<int>(
+              data: index,
+              maxSimultaneousDrags: 1,
+              feedback: Material(
+                color: Colors.transparent,
+                child: SizedBox(
+                  width: width >= 620 ? 200 : 160,
+                  child: _cardHistorico(
+                    codigo,
+                    index,
+                    compact: true,
+                    highlighted: true,
+                  ),
+                ),
+              ),
+              childWhenDragging: Opacity(opacity: 0.35, child: card),
+              child: card,
+            );
+          },
+        );
+      },
     );
   }
 
   Widget _botaoAtalho(String label) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFE8F0FF),
-        foregroundColor: _primaryBlue,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: Color(0xFFC9D7F2)),
-        ),
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        backgroundColor: Colors.white,
+        foregroundColor: _secondaryInk,
+        side: const BorderSide(color: Color(0xFFC8D4E7)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       ),
       onPressed: () => _gerarAtalho(label),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
       ),
     );
   }
 
-  Widget _campoNumerico(TextEditingController controller) {
+  Widget _campoNumerico(
+    TextEditingController controller, {
+    required double size,
+  }) {
     return SizedBox(
-      width: 65,
+      width: size,
+      height: size,
       child: TextField(
         controller: controller,
         keyboardType: TextInputType.number,
@@ -714,8 +997,8 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
           LengthLimitingTextInputFormatter(2),
         ],
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 20,
+        style: TextStyle(
+          fontSize: size * 0.32,
           fontWeight: FontWeight.w800,
           color: _secondaryInk,
         ),
@@ -723,18 +1006,18 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
         decoration: InputDecoration(
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          contentPadding: EdgeInsets.zero,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: _line),
+            borderRadius: BorderRadius.circular(20),
+            borderSide: const BorderSide(color: Color(0xFFB6C4D7)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: _line),
+            borderRadius: BorderRadius.circular(20),
+            borderSide: const BorderSide(color: Color(0xFFB6C4D7)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: _primaryBlue, width: 1.6),
+            borderRadius: BorderRadius.circular(20),
+            borderSide: const BorderSide(color: _primaryBlue, width: 2),
           ),
           counterText: '',
         ),
@@ -748,32 +1031,40 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
     VoidCallback acao, {
     bool isPrimary = true,
   }) {
-    return ElevatedButton.icon(
-      onPressed: acao,
-      icon: Icon(icone),
-      label: Text(rotulo, style: const TextStyle(fontSize: 16)),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isPrimary ? _primaryBlue : Colors.white,
-        foregroundColor: isPrimary ? Colors.white : _secondaryInk,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: isPrimary ? BorderSide.none : const BorderSide(color: _line),
+    return SizedBox(
+      height: 58,
+      child: ElevatedButton.icon(
+        onPressed: acao,
+        icon: Icon(icone),
+        label: Text(
+          rotulo,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isPrimary ? _primaryBlue : Colors.white,
+          foregroundColor: isPrimary ? Colors.white : _secondaryInk,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: isPrimary
+                ? BorderSide.none
+                : const BorderSide(color: Color(0xFFB7C6DA)),
+          ),
         ),
       ),
     );
   }
 
-  Widget _separadorCodigo() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8),
+  Widget _separadorCodigo({required double width, required bool tight}) {
+    return SizedBox(
+      width: width,
       child: Text(
         '-',
+        textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w700,
-          color: _muted,
+          fontSize: tight ? 22 : 28,
+          fontWeight: FontWeight.w500,
+          color: const Color(0xFFB3BDC9),
         ),
       ),
     );
@@ -789,100 +1080,82 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
       onTap: () => _abrirCodigoDoHistorico(codigo),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
+        padding: EdgeInsets.all(compact ? 12 : 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFFFFF), Color(0xFFF4F7FC)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(18),
+          color: _card,
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: highlighted ? _primaryBlue : _line,
+            color: highlighted ? _primaryBlue : const Color(0xFFE5ECF5),
             width: highlighted ? 2 : 1.5,
           ),
           boxShadow: [
             const BoxShadow(
-              color: Color(0x0E0F172A),
-              blurRadius: 16,
-              offset: Offset(0, 8),
+              color: Color(0x0F0F172A),
+              blurRadius: 20,
+              offset: Offset(0, 10),
             ),
             if (highlighted)
               const BoxShadow(
-                color: Color(0x220052FF),
-                blurRadius: 18,
-                offset: Offset(0, 6),
+                color: Color(0x220C63E7),
+                blurRadius: 22,
+                offset: Offset(0, 10),
               ),
           ],
         ),
-        padding: EdgeInsets.all(compact ? 10 : 12),
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F0FF),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.qr_code_2_rounded,
-                        size: 18,
-                        color: _primaryBlue,
-                      ),
-                    ),
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _line),
-                      ),
-                      child: const Icon(
-                        Icons.drag_indicator_rounded,
-                        size: 18,
-                        color: _muted,
-                      ),
-                    ),
-                  ],
+                const Icon(
+                  Icons.drag_indicator_rounded,
+                  color: Color(0xFFB0BAC7),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  codigo,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: compact ? 12 : 13,
-                    fontWeight: FontWeight.w800,
-                    color: _secondaryInk,
+                const Spacer(),
+                InkWell(
+                  onTap: () => _removerDoHistorico(index),
+                  borderRadius: BorderRadius.circular(999),
+                  child: const Padding(
+                    padding: EdgeInsets.all(2),
+                    child: Icon(Icons.close_rounded, size: 26, color: _muted),
                   ),
                 ),
               ],
             ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: InkWell(
-                onTap: () => _removerDoHistorico(index),
-                borderRadius: BorderRadius.circular(999),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFFE4E8),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.close_rounded,
-                    size: 14,
-                    color: Color(0xFFBE123C),
-                  ),
+            const Spacer(),
+            Center(
+              child: Container(
+                width: compact ? 72 : 86,
+                height: compact ? 72 : 86,
+                decoration: BoxDecoration(
+                  color: _surface,
+                  borderRadius: BorderRadius.circular(18),
                 ),
+                child: const Icon(
+                  Icons.qr_code_2_rounded,
+                  color: _primaryBlue,
+                  size: 38,
+                ),
+              ),
+            ),
+            SizedBox(height: compact ? 12 : 16),
+            Center(
+              child: Text(
+                codigo,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: compact ? 18 : 20,
+                  fontWeight: FontWeight.w800,
+                  color: _secondaryInk,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Center(
+              child: Text(
+                'Toque para abrir',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12.5, color: _muted),
               ),
             ),
           ],
