@@ -662,11 +662,10 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   }
 
   Widget _quadroQr(double qrSize) {
-    final moldura = qrSize + 74;
-
     return Container(
-      width: moldura,
-      height: moldura,
+      width: qrSize + 24,
+      height: qrSize + 24,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
@@ -678,42 +677,10 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(26),
-                  border: Border.all(color: const Color(0xFFCFE0FF), width: 2),
-                ),
-              ),
-            ),
-          ),
-          Container(
-            width: qrSize + 16,
-            height: qrSize + 16,
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2B2B2B),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x33000000),
-                  blurRadius: 12,
-                  offset: Offset(6, 6),
-                ),
-              ],
-            ),
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(10),
-              child: QrImageView(data: _dadosParaQR, size: qrSize),
-            ),
-          ),
-        ],
+      child: QrImageView(
+        data: _dadosParaQR,
+        size: qrSize,
+        backgroundColor: Colors.white,
       ),
     );
   }
@@ -966,18 +933,26 @@ class _PaginaGeradorQRState extends State<PaginaGeradorQR> {
   }
 
   Widget _botaoAtalho(String label) {
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        backgroundColor: Colors.white,
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFFDFEFF),
         foregroundColor: _secondaryInk,
-        side: const BorderSide(color: Color(0xFFC8D4E7)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: Color(0xFFD5E0EF)),
+        ),
       ),
       onPressed: () => _gerarAtalho(label),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.1,
+        ),
       ),
     );
   }
